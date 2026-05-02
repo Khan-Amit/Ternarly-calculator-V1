@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Ternary Calculator V1 – Continuous Logic Engine</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* better mobile feel */
+        }
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            font-family: 'Segoe UI', 'Monaco', 'Menlo', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            max-width: 550px;
+            width: 100%;
+            background: rgba(18, 25, 45, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 24px 20px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid rgba(100,150,255,0.2);
+            transition: all 0.2s;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 0.2rem 0;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff, #aac9ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+        }
+        .sub {
+            text-align: center;
+            color: #7e8cae;
+            font-size: 0.8rem;
+            margin-bottom: 28px;
+            border-bottom: 1px dashed #2a3455;
+            padding-bottom: 12px;
+        }
+        .domain-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+        .domain-btn {
+            background: #1e2a3e;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #bdd4ff;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .domain-btn.active {
+            background: #3b5f9e;
+            color: white;
+            box-shadow: 0 0 12px #3b5f9e;
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #ccddf8;
+            margin-bottom: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #2a3555;
+            border-radius: 10px;
+            outline: none;
+        }
+        input[type="range"]:focus {
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffaa44;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px #ffcc88;
+            border: 2px solid #fff;
+        }
+        .threshold-panel {
+            background: #0f1422cc;
+            border-radius: 28px;
+            padding: 16px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .threshold-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .threshold-row label {
+            font-size: 0.8rem;
+            background: #00000055;
+            padding: 4px 10px;
+            border-radius: 30px;
+            width: 100px;
+        }
+        .threshold-row input {
+            flex: 1;
+            min-width: 120px;
+            background: #010a1a;
+            border: 1px solid #2f4172;
+            color: #ffdd99;
+            border-radius: 40px;
+            padding: 8px 12px;
+            font-family: monospace;
+        }
+        .result-box {
+            background: #00000066;
+            border-radius: 36px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 16px;
+            border: 1px solid #ffaa3355;
+        }
+        .ternary-state {
+            font-size: 3.5rem;
+            font-weight: bold;
+            letter-spacing: 8px;
+            font-family: monospace;
+        }
+        .state-0 { color: #3cba54; text-shadow: 0 0 6px #3cba54; }
+        .state-T { color: #f4b942; text-shadow: 0 0 6px #f4b942; }
+        .state-1 { color: #ff5e5e; text-shadow: 0 0 6px #ff5e5e; }
+        .raw-value {
+            font-size: 1.3rem;
+            margin-top: 8px;
+            color: #ddddff;
+        }
+        .progress-bar {
+            background: #1a1f2e;
+            border-radius: 20px;
+            height: 12px;
+            margin: 16px 0 8px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #5a7bc9, #c98f3b);
+            border-radius: 20px;
+            transition: width 0.05s linear;
+        }
+        .footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 24px;
+            color: #5b6b8e;
+        }
+        button, input {
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>⨀ TERNARY CALCULATOR V1</h1>
+    <div class="sub">continuous → 0 • T • 1 &nbsp;&nbsp;|&nbsp;&nbsp;resonance engine</div>
+
+    <div class="domain-buttons" id="domainButtons">
+        <button data-domain="emotion">🧠 EMOTION</button>
+        <button data-domain="economics">📈 ECONOMICS</button>
+        <button data-domain="conflict">⚔️ CONFLICT</button>
+        <button data-domain="flight">✈️ FLIGHT PATH</button>
+        <button data-domain="ai">🤖 AI CONFIDENCE</button>
+    </div>
+
+    <div class="slider-container">
+        <div class="slider-label">
+            <span>◀ 0 (LOW)</span>
+            <span id="currentValueLabel">50.0</span>
+            <span>1 (HIGH) ▶</span>
+        </div>
+        <input type="range" id="inputSlider" min="0" max="100" step="0.1" value="50">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="threshold-panel">
+        <div class="threshold-row">
+            <label>⬅ 0 → T threshold</label>
+            <input type="number" id="lowThreshold" step="0.1" min="0" max="100" value="30">
+        </div>
+        <div class="threshold-row">
+            <label>T → 1 threshold ➔</label>
+            <input type="number" id="highThreshold" step="0.1" min="0" max="100" value="70">
+        </div>
+        <div class="threshold-row">
+            <label>📐 Transition width</label>
+            <input type="text" id="transitionWidth" readonly style="background:#111c2e; color:#bbccff;">
+        </div>
+    </div>
+
+    <div class="result-box">
+        <div class="ternary-state" id="ternaryState">T</div>
+        <div class="raw-value">continuous index: <span id="continuousIndex">0.500</span></div>
+        <div class="raw-value" id="domainDescription">→ neutral zone</div>
+    </div>
+    <div class="footer">
+        ternary matrix • programmable thresholds • domain presets<br>
+        extend with any variable: emotion, economics, conflict, AI – the logic is the same
+    </div>
+</div>
+
+<script>
+    // ---------- DOMAIN PRESETS ----------
+    const domains = {
+        emotion: {
+            name: "Emotional valence",
+            lowThreshold: 25,
+            highThreshold: 75,
+            labelLow: "strong negative",
+            labelT: "neutral / mixed",
+            labelHigh: "strong positive"
+        },
+        economics: {
+            name: "Market risk",
+            lowThreshold: 20,
+            highThreshold: 60,
+            labelLow: "safe / buy",
+            labelT: "caution / hold",
+            labelHigh: "high risk / sell"
+        },
+        conflict: {
+            name: "Conflict intensity",
+            lowThreshold: 30,
+            highThreshold: 70,
+            labelLow: "ceasefire",
+            labelT: "skirmish / tension",
+            labelHigh: "full warfare"
+        },
+        flight: {
+            name: "Flight path deviation",
+            lowThreshold: 10,
+            highThreshold: 35,
+            labelLow: "on course",
+            labelT: "correcting",
+            labelHigh: "evasive maneuver"
+        },
+        ai: {
+            name: "AI confidence",
+            lowThreshold: 40,
+            highThreshold: 85,
+            labelLow: "uncertain (need human)",
+            labelT: "recommend",
+            labelHigh: "certain – execute"
+        }
+    };
+
+    // UI elements
+    const slider = document.getElementById('inputSlider');
+    const lowInput = document.getElementById('lowThreshold');
+    const highInput = document.getElementById('highThreshold');
+    const ternarySpan = document.getElementById('ternaryState');
+    const continuousSpan = document.getElementById('continuousIndex');
+    const domainDescriptionSpan = document.getElementById('domainDescription');
+    const transitionWidthSpan = document.getElementById('transitionWidth');
+    const progressFill = document.getElementById('progressFill');
+    const currentValueLabel = document.getElementById('currentValueLabel');
+
+    let currentDomain = "emotion";
+
+    function updateTernary(value, lowTh, highTh) {
+        let state = '';
+        let description = '';
+        let stateClass = '';
+        if (value <= lowTh) {
+            state = '0';
+            description = domains[currentDomain]?.labelLow || 'LOW';
+            stateClass = 'state-0';
+        } else if (value >= highTh) {
+            state = '1';
+            description = domains[currentDomain]?.labelHigh || 'HIGH';
+            stateClass = 'state-1';
+        } else {
+            state = 'T';
+            description = domains[currentDomain]?.labelT || 'TRANSITION';
+            stateClass = 'state-T';
+        }
+        ternarySpan.className = `ternary-state ${stateClass}`;
+        ternarySpan.innerText = state;
+        domainDescriptionSpan.innerText = `${description} (${state})`;
+        // show continuous index normalized 0..1
+        let continuous = (value / 100).toFixed(3);
+        continuousSpan.innerText = continuous;
+        currentValueLabel.innerText = value.toFixed(1);
+        progressFill.style.width = value + '%';
+    }
+
+    function applyThresholds() {
+        let low = parseFloat(lowInput.value);
+        let high = parseFloat(highInput.value);
+        if (isNaN(low)) low = 0;
+        if (isNaN(high)) high = 100;
+        if (low < 0) low = 0;
+        if (high > 100) high = 100;
+        if (low > high) {
+            // swap if inverted
+            [low, high] = [high, low];
+            lowInput.value = low;
+            highInput.value = high;
+        }
+        const width = (high - low).toFixed(1);
+        transitionWidthSpan.value = `${width} (T‑zone size)`;
+        let val = parseFloat(slider.value);
+        updateTernary(val, low, high);
+    }
+
+    function setDomain(domainKey) {
+        currentDomain = domainKey;
+        const cfg = domains[domainKey];
+        if (cfg) {
+            lowInput.value = cfg.lowThreshold;
+            highInput.value = cfg.highThreshold;
+            // update slider? not resetting value, keep current input
+            applyThresholds();
+            // highlight active button
+            document.querySelectorAll('.domain-btn').forEach(btn => {
+                if (btn.getAttribute('data-domain') === domainKey) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    }
+
+    // events
+    slider.addEventListener('input', (e) => {
+        let low = parseFloat(lowInput.value);
+        let high = parseFloat(highInput.value);
+        updateTernary(parseFloat(e.target.value), low, high);
+    });
+    lowInput.addEventListener('input', applyThresholds);
+    highInput.addEventListener('input', applyThresholds);
+
+    // init domain buttons
+    const container = document.getElementById('domainButtons');
+    for (let [key, cfg] of Object.entries(domains)) {
+        const btn = document.createElement('button');
+        btn.innerText = cfg.name.toUpperCase();
+        btn.setAttribute('data-domain', key);
+        btn.classList.add('domain-btn');
+        btn.addEventListener('click', () => setDomain(key));
+        container.appendChild(btn);
+    }
+    // set default = emotion
+    setDomain('emotion');
+    applyThresholds();
+</script>
+</body>
+                             </html>
